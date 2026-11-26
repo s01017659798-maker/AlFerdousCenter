@@ -171,3 +171,5 @@ jobs:
           path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
+
+# Rebuild after release signing secrets were added.
