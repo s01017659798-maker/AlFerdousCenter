@@ -97,8 +97,8 @@ jobs:
         if: ${{ env.RELEASE_KEY_BASE64 != '' }}
         env:
           ALFARDOUS_KEYSTORE_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
-          ALFARDOUS_KEY_ALIAS: ${{ secrets.ALFARDOUS_KEY_ALIAS }}
-          ALFARDOUS_KEY_PASSWORD: ${{ secrets.ALFARDOUS_KEY_PASSWORD }}
+          ALFARDOUS_KEY_ALIAS: alfardous-center
+          ALFARDOUS_KEY_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -149,8 +149,8 @@ jobs:
         if: ${{ env.RELEASE_KEY_BASE64 != '' }}
         env:
           ALFARDOUS_KEYSTORE_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
-          ALFARDOUS_KEY_ALIAS: ${{ secrets.ALFARDOUS_KEY_ALIAS }}
-          ALFARDOUS_KEY_PASSWORD: ${{ secrets.ALFARDOUS_KEY_PASSWORD }}
+          ALFARDOUS_KEY_ALIAS: alfardous-center
+          ALFARDOUS_KEY_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
         run: gradle --no-daemon -p "$PROJECT_ROOT" clean :app:assembleRelease
       - name: Upload signed release APK
         if: ${{ env.RELEASE_KEY_BASE64 != '' }}
