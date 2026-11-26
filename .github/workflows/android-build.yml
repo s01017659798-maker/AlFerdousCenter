@@ -105,7 +105,13 @@ jobs:
           KEY_PATH="$RUNNER_TEMP/AlFerdousCenter-release.jks"
           printf '%s' "$RELEASE_KEY_BASE64" | base64 --decode > "$KEY_PATH"
           test -s "$KEY_PATH"
-          keytool -list -keystore "$KEY_PATH" -storetype JKS -storepass "$ALFARDOUS_KEYSTORE_PASSWORD" -alias "$ALFARDOUS_KEY_ALIAS" >/dev/null
+          echo "Checking release keystore format and alias..."
+          if ! keytool -list -keystore "$KEY_PATH" -storepass "$ALFARDOUS_KEYSTORE_PASSWORD" -alias "$ALFARDOUS_KEY_ALIAS" >/tmp/alfardous-key-check.log 2>&1; then
+            echo "Keystore validation failed. Diagnostic (secrets omitted):"
+            cat /tmp/alfardous-key-check.log
+            exit 1
+          fi
+          echo "Release keystore and alias validated."
           echo "ALFARDOUS_KEYSTORE_PATH=$KEY_PATH" >> "$GITHUB_ENV"
           python3 - "$PROJECT_ROOT/app/build.gradle" <<'PY'
           from pathlib import Path
