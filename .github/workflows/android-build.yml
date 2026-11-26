@@ -17,6 +17,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_KEY_BASE64: ${{ secrets.ALFARDOUS_KEYSTORE_BASE64 }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
