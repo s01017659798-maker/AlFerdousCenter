@@ -93,9 +93,78 @@ jobs:
           print(f'Extracted {len(scripts)} inline scripts')
           PY
           for file in /tmp/alfardous-inline-js/*.js; do node --check "$file"; done
-      - name: Build debug APK
+      - name: Configure secure release signing
+        if: ${{ env.RELEASE_KEY_BASE64 != '' }}
+        env:
+          ALFARDOUS_KEYSTORE_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
+          ALFARDOUS_KEY_ALIAS: ${{ secrets.ALFARDOUS_KEY_ALIAS }}
+          ALFARDOUS_KEY_PASSWORD: ${{ secrets.ALFARDOUS_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY_PATH="$RUNNER_TEMP/AlFerdousCenter-release.p12"
+          printf '%s' "$RELEASE_KEY_BASE64" | base64 --decode > "$KEY_PATH"
+          test -s "$KEY_PATH"
+          keytool -list -keystore "$KEY_PATH" -storetype PKCS12 -storepass "$ALFARDOUS_KEYSTORE_PASSWORD" -alias "$ALFARDOUS_KEY_ALIAS" >/dev/null
+          echo "ALFARDOUS_KEYSTORE_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+          python3 - "$PROJECT_ROOT/app/build.gradle" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); s=p.read_text()
+          if "signingConfigs {" not in s:
+              s=s.replace("android {", """def releaseStorePath = System.getenv('ALFARDOUS_KEYSTORE_PATH')
+          def releaseStorePassword = System.getenv('ALFARDOUS_KEYSTORE_PASSWORD')
+          def releaseKeyAlias = System.getenv('ALFARDOUS_KEY_ALIAS')
+          def releaseKeyPassword = System.getenv('ALFARDOUS_KEY_PASSWORD')
+
+          android {""", 1)
+              marker="    }\n}\n\n\ndependencies {"
+              replacement="""    }
+
+              signingConfigs {
+                  release {
+                      storeFile file(releaseStorePath)
+                      storePassword releaseStorePassword
+                      keyAlias releaseKeyAlias
+                      keyPassword releaseKeyPassword
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                      minifyEnabled false
+                  }
+              }
+          }
+
+
+          dependencies {"""
+              if marker not in s: raise SystemExit("Could not safely patch Android signing configuration")
+              s=s.replace(marker,replacement,1)
+              p.write_text(s)
+          PY
+          echo "Private signing key configured without adding it to the repository."
+      - name: Build signed release APK
+        if: ${{ env.RELEASE_KEY_BASE64 != '' }}
+        env:
+          ALFARDOUS_KEYSTORE_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
+          ALFARDOUS_KEY_ALIAS: ${{ secrets.ALFARDOUS_KEY_ALIAS }}
+          ALFARDOUS_KEY_PASSWORD: ${{ secrets.ALFARDOUS_KEY_PASSWORD }}
+        run: gradle --no-daemon -p "$PROJECT_ROOT" clean :app:assembleRelease
+      - name: Upload signed release APK
+        if: ${{ env.RELEASE_KEY_BASE64 != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: santer-alfardous-3.8.9-release
+          path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build debug APK (verification only)
+        if: ${{ env.RELEASE_KEY_BASE64 == '' }}
         run: gradle --no-daemon -p "$PROJECT_ROOT" clean :app:assembleDebug
-      - name: Upload APK
+      - name: Upload debug APK for verification only
+        if: ${{ env.RELEASE_KEY_BASE64 == '' }}
         uses: actions/upload-artifact@v4
         with:
           name: santer-alfardous-3.8.9-debug
