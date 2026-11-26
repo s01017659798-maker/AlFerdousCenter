@@ -113,26 +113,16 @@ jobs:
           p = Path(sys.argv[1])
           s = p.read_text()
           if "signingConfigs {" not in s:
-              android_pos = s.find("android {")
-              if android_pos < 0:
-                  raise SystemExit("Could not locate Android configuration")
-              env = """def releaseStorePath = System.getenv('ALFARDOUS_KEYSTORE_PATH')
-          def releaseStorePassword = System.getenv('ALFARDOUS_KEYSTORE_PASSWORD')
-          def releaseKeyAlias = System.getenv('ALFARDOUS_KEY_ALIAS')
-          def releaseKeyPassword = System.getenv('ALFARDOUS_KEY_PASSWORD')
+              s += """
 
-          """
-              s = s[:android_pos] + env + s[android_pos:]
-              pos = s.rfind("\n}")
-              if pos < 0:
-                  raise SystemExit("Could not locate final Android configuration brace")
-              signing = """
+          // Release signing added by CI; secrets are read only from environment.
+          android {
               signingConfigs {
                   release {
-                      storeFile file(releaseStorePath)
-                      storePassword releaseStorePassword
-                      keyAlias releaseKeyAlias
-                      keyPassword releaseKeyPassword
+                      storeFile file(System.getenv('ALFARDOUS_KEYSTORE_PATH'))
+                      storePassword System.getenv('ALFARDOUS_KEYSTORE_PASSWORD')
+                      keyAlias System.getenv('ALFARDOUS_KEY_ALIAS')
+                      keyPassword System.getenv('ALFARDOUS_KEY_PASSWORD')
                   }
               }
               buildTypes {
@@ -141,8 +131,8 @@ jobs:
                       minifyEnabled false
                   }
               }
+          }
           """
-              s = s[:pos] + signing + s[pos:]
               p.write_text(s)
           PY
           echo "Private signing key configured without adding it to the repository."
