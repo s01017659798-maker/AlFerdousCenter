@@ -94,7 +94,9 @@ jobs:
           PY
           for file in /tmp/alfardous-inline-js/*.js; do node --check "$file"; done
       - name: Configure secure release signing
-        if: ${{ env.RELEASE_KEY_BASE64 != '' }}
+        id: signing
+        continue-on-error: true
+        if: ${{ env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         env:
           ALFARDOUS_KEYSTORE_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
           ALFARDOUS_KEY_ALIAS: alfardous-center
@@ -150,7 +152,7 @@ jobs:
           ALFARDOUS_KEY_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
         run: gradle --no-daemon -p "$PROJECT_ROOT" clean :app:assembleRelease
       - name: Upload signed release APK
-        if: ${{ env.RELEASE_KEY_BASE64 != '' }}
+        if: ${{ env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: santer-alfardous-3.8.9-release
@@ -158,10 +160,10 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Build debug APK (verification only)
-        if: ${{ env.RELEASE_KEY_BASE64 == '' }}
+        if: ${{ env.RELEASE_KEY_BASE64 == '' || steps.signing.outcome == 'failure' }}
         run: gradle --no-daemon -p "$PROJECT_ROOT" clean :app:assembleDebug
       - name: Upload debug APK for verification only
-        if: ${{ env.RELEASE_KEY_BASE64 == '' }}
+        if: ${{ env.RELEASE_KEY_BASE64 == '' || steps.signing.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: santer-alfardous-3.8.9-debug
