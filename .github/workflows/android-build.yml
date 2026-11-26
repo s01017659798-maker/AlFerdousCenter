@@ -110,17 +110,33 @@ jobs:
           python3 - "$PROJECT_ROOT/app/build.gradle" <<'PY'
           from pathlib import Path
           import sys
-          p=Path(sys.argv[1]); s=p.read_text()
+          p = Path(sys.argv[1])
+          s = p.read_text()
           if "signingConfigs {" not in s:
-              s=s.replace("android {", """def releaseStorePath = System.getenv('ALFARDOUS_KEYSTORE_PATH')
-          def releaseStorePassword = System.getenv('ALFARDOUS_KEYSTORE_PASSWORD')
-          def releaseKeyAlias = System.getenv('ALFARDOUS_KEY_ALIAS')
-          def releaseKeyPassword = System.getenv('ALFARDOUS_KEY_PASSWORD')
-
-          android {""", 1)
-              marker="    }\n}\n\n\ndependencies {"
-              replacement="""    }
-
+              start = s.find("android {")
+              if start < 0:
+                  raise SystemExit("Android block not found")
+              depth = 0
+              quote = None
+              escaped = False
+              close = None
+              for i in range(start, len(s)):
+                  ch = s[i]
+                  if quote:
+                      if escaped: escaped = False
+                      elif ch == "\\\\": escaped = True
+                      elif ch == quote: quote = None
+                      continue
+                  if ch in ("'", '"'): quote = ch
+                  elif ch == "{": depth += 1
+                  elif ch == "}":
+                      depth -= 1
+                      if depth == 0:
+                          close = i
+                          break
+              if close is None:
+                  raise SystemExit("Android block braces are unbalanced")
+              signing = """
               signingConfigs {
                   release {
                       storeFile file(releaseStorePath)
@@ -129,19 +145,20 @@ jobs:
                       keyPassword releaseKeyPassword
                   }
               }
-
               buildTypes {
                   release {
                       signingConfig signingConfigs.release
                       minifyEnabled false
                   }
               }
-          }
+              """
+              env = """def releaseStorePath = System.getenv('ALFARDOUS_KEYSTORE_PATH')
+          def releaseStorePassword = System.getenv('ALFARDOUS_KEYSTORE_PASSWORD')
+          def releaseKeyAlias = System.getenv('ALFARDOUS_KEY_ALIAS')
+          def releaseKeyPassword = System.getenv('ALFARDOUS_KEY_PASSWORD')
 
-
-          dependencies {"""
-              if marker not in s: raise SystemExit("Could not safely patch Android signing configuration")
-              s=s.replace(marker,replacement,1)
+          """
+              s = s[:start] + env + s[start:close] + signing + s[close:]
               p.write_text(s)
           PY
           echo "Private signing key configured without adding it to the repository."
