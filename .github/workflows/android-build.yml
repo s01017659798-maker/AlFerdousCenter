@@ -109,25 +109,23 @@ jobs:
           echo "ALFARDOUS_KEYSTORE_PATH=$KEY_PATH" >> "$GITHUB_ENV"
           python3 - "$PROJECT_ROOT/app/build.gradle" <<'PY'
           from pathlib import Path
-          import re, sys
+          import sys
           p = Path(sys.argv[1])
           s = p.read_text()
           if "signingConfigs {" not in s:
+              android_pos = s.find("android {")
+              if android_pos < 0:
+                  raise SystemExit("Could not locate Android configuration")
               env = """def releaseStorePath = System.getenv('ALFARDOUS_KEYSTORE_PATH')
           def releaseStorePassword = System.getenv('ALFARDOUS_KEYSTORE_PASSWORD')
           def releaseKeyAlias = System.getenv('ALFARDOUS_KEY_ALIAS')
           def releaseKeyPassword = System.getenv('ALFARDOUS_KEY_PASSWORD')
 
           """
-              # Insert variables before the android block.
-              s, count = re.subn(r'(?m)^android\\s*\\{', env + 'android {', s, count=1)
-              if count != 1:
-                  raise SystemExit("Could not locate top-level Android configuration")
-              # Insert release signing sections immediately before the final android closing brace.
-              matches = list(re.finditer(r'(?m)^\\}', s))
-              if not matches:
-                  raise SystemExit("Could not locate Android configuration closing brace")
-              pos = matches[-1].start()
+              s = s[:android_pos] + env + s[android_pos:]
+              pos = s.rfind("\n}")
+              if pos < 0:
+                  raise SystemExit("Could not locate final Android configuration brace")
               signing = """
               signingConfigs {
                   release {
