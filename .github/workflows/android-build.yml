@@ -1,0 +1,91 @@
+name: Build Santer AlFardous Android
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - '*.zip'
+      - '**/*.zip'
+      - 'app/**'
+      - '*.gradle'
+      - 'gradle.properties'
+      - 'tests/**'
+      - '.github/workflows/android-build.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android platform
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Find and extract Android project
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=""
+          if [ -f app/src/main/assets/index.html ]; then
+            ROOT="."
+          else
+            mkdir -p /tmp/alfardous-unpack
+            while IFS= read -r -d '' ZIP; do
+              DEST="/tmp/alfardous-unpack/$(basename "$ZIP" .zip)"
+              mkdir -p "$DEST"
+              unzip -oq "$ZIP" -d "$DEST"
+              FOUND="$(find "$DEST" -type f -path '*/app/src/main/assets/index.html' -print -quit)"
+              if [ -n "$FOUND" ]; then
+                ROOT="${FOUND%/app/src/main/assets/index.html}"
+                break
+              fi
+            done < <(find . -maxdepth 2 -type f -iname '*.zip' -print0)
+          fi
+          if [ -z "$ROOT" ]; then
+            echo 'Android project not found. Upload the project ZIP to the repository root.'
+            exit 1
+          fi
+          echo "PROJECT_ROOT=$ROOT" >> "$GITHUB_ENV"
+          test -f "$ROOT/settings.gradle"
+          test -f "$ROOT/app/build.gradle"
+      - name: Run source regression tests
+        run: |
+          if [ -f "$PROJECT_ROOT/tests/feature-regression.test.cjs" ]; then
+            cd "$PROJECT_ROOT"
+            node --test tests/*.test.cjs
+          fi
+      - name: Check inline JavaScript syntax
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re, pathlib, os
+          root = pathlib.Path(os.environ['PROJECT_ROOT'])
+          html = (root / 'app/src/main/assets/index.html').read_text()
+          scripts = re.findall(r'<script\\b[^>]*>([\\s\\S]*?)</script>', html, re.I)
+          pathlib.Path('/tmp/alfardous-inline-js').mkdir(exist_ok=True)
+          for i, source in enumerate(scripts):
+              pathlib.Path(f'/tmp/alfardous-inline-js/{i}.js').write_text(source)
+          print(f'Extracted {len(scripts)} inline scripts')
+          PY
+          for file in /tmp/alfardous-inline-js/*.js; do node --check "$file"; done
+      - name: Build debug APK
+        run: gradle --no-daemon -p "$PROJECT_ROOT" clean :app:assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: santer-alfardous-3.8.8-debug
+          path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
