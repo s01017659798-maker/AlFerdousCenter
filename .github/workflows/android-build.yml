@@ -96,7 +96,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: santer-alfardous-3.8.8-debug
+          name: santer-alfardous-3.8.9-debug
           path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
