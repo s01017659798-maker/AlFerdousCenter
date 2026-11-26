@@ -96,7 +96,7 @@ jobs:
       - name: Configure secure release signing
         id: signing
         continue-on-error: true
-        if: ${{ env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
+        if: ${{ env.RELEASE_KEY_BASE64 != '' }}
         env:
           ALFARDOUS_KEYSTORE_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
           ALFARDOUS_KEY_ALIAS: alfardous-center
@@ -145,7 +145,7 @@ jobs:
           PY
           echo "Private signing key configured without adding it to the repository."
       - name: Build signed release APK
-        if: ${{ env.RELEASE_KEY_BASE64 != '' }}
+        if: ${{ env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         env:
           ALFARDOUS_KEYSTORE_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
           ALFARDOUS_KEY_ALIAS: alfardous-center
@@ -170,5 +170,3 @@ jobs:
           path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
-
-# Rebuild after release signing secrets were added.
