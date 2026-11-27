@@ -177,6 +177,8 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
+          disable-linux-hw-accel: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -memory 4096 -cores 4
           script: |
             set -euo pipefail
             APK="$(find "$PROJECT_ROOT/app/build/outputs/apk/release" -maxdepth 1 -type f -name '*.apk' -print -quit)"
@@ -184,7 +186,7 @@ jobs:
             adb shell am start -n eg.alfardous.center.fresh/eg.alfardous.center.MainActivity
             sleep 12
             adb shell pidof eg.alfardous.center.fresh >/dev/null
-            adb shell screencap -p /sdcard/alfardous-3.8.14-screen.png
+            adb shell screencap -p /sdcard/alfardous-3.8.15-screen.png
             adb pull /sdcard/alfardous-3.8.14-screen.png ./alfardous-3.8.14-screen.png
       - name: Upload signed release APK only after emulator smoke test
         if: ${{ success() && env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
@@ -206,7 +208,7 @@ jobs:
         if: ${{ success() && env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: santer-alfardous-3.8.14-release
+          name: santer-alfardous-3.8.15-release
           path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 7
@@ -217,7 +219,7 @@ jobs:
         if: ${{ env.RELEASE_KEY_BASE64 == '' || steps.signing.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: santer-alfardous-3.8.14-debug
+          name: santer-alfardous-3.8.15-debug
           path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
