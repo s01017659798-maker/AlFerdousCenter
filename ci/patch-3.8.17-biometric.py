@@ -14,7 +14,7 @@ if "AndroidBiometricBridge" not in java:
     java = java.replace("public class MainActivity extends Activity {", "public class MainActivity extends FragmentActivity {", 1)
     java = java.replace(
         "import androidx.fragment.app.FragmentActivity;\nimport androidx.core.graphics.Insets;",
-        "import androidx.biometric.BiometricManager;\nimport androidx.biometric.BiometricPrompt;\nimport androidx.core.content.ContextCompat;\nimport androidx.core.graphics.Insets;",
+        "import androidx.fragment.app.FragmentActivity;\nimport androidx.biometric.BiometricManager;\nimport androidx.biometric.BiometricPrompt;\nimport androidx.core.content.ContextCompat;\nimport androidx.core.graphics.Insets;",
         1
     )
     java = java.replace(
