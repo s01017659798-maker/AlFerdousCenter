@@ -21,6 +21,15 @@ for p in tests.glob('*.test.cjs'):
     s=re.sub(r'(const\\s+questionBank\\s*=\\s*)html\\.slice\\([^;]+;', r'\\1html;', s, count=1)
     s=s.replace('assert.match(html, \\\\1);', 'assert.match(html, /id="examImportFile"/);')
     p.write_text(s, encoding='utf-8')
+# Show precise failing regression assertions and locate native activity source.
+fp=tests/'feature-regression.test.cjs'
+if fp.exists():
+    print('\\n=== REGRESSION TEST LINES 55-75 ===')
+    print('\\n'.join(f'{i+1}: {line}' for i,line in enumerate(fp.read_text(encoding='utf-8').splitlines()[54:75],54)))
+for jp in root.rglob('MainActivity.java'):
+    j=jp.read_text(encoding='utf-8')
+    print('\\n=== JAVA FILE',jp,'===')
+    print('\\n'.join(j.splitlines()[:130]))
 # Diagnostics: expose only relevant source context, no secrets or user data.
 htmlp=root/'app/src/main/assets/index.html'
 h=htmlp.read_text(encoding='utf-8')
