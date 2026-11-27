@@ -111,8 +111,8 @@ gradle_path.write_text(gradle, encoding="utf-8")
 for test_path in (root / "tests").glob("*.test.cjs"):
     test = test_path.read_text(encoding="utf-8")
     test = test.replace("3.8.13", "3.8.14")
-    test = test.replace(r"3\\.8\\.13", r"3\\.8\\.14")
-    test = test.replace(r"3\\.8\\.12", r"3\\.8\\.14")
+    test = test.replace(r"3\.8\.13", r"3\.8\.14")
+    test = test.replace(r"3\.8\.12", r"3\\.8\\.14")
     test = test.replace("versionCode 394", "versionCode 395")
     test_path.write_text(test, encoding="utf-8")
 
