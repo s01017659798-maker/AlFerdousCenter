@@ -78,6 +78,8 @@ jobs:
         run: python3 ci/patch-3.8.14-contact-picker.py
       - name: Apply memo and exam file upload repair
         run: python3 ci/patch-3.8.15-file-import.py
+      - name: Diagnose account creation and biometric lock anchors
+        run: python3 ci/diagnose-account-biometric.py
       - name: Run source regression tests
         run: |
           if [ -f "$PROJECT_ROOT/tests/feature-regression.test.cjs" ]; then
