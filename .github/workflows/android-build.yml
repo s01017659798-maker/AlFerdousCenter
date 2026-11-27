@@ -174,8 +174,11 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           sed -n '1p' "$RUNNER_TEMP/apk-badging.txt"
+          grep -Fq "package: name='eg.alfardous.center.fresh' versionCode='399' versionName='3.8.18'" "$RUNNER_TEMP/apk-badging.txt"
       - name: Launch APK on Android emulator
-        timeout-minutes: 12
+        timeout-minutes: 18
+        env:
+          ANDROID_I_WANT_MY_TCG: yes
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -183,8 +186,9 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          disable-linux-hw-accel: false
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -memory 4096 -cores 4
+          emulator-boot-timeout: 900
+          disable-linux-hw-accel: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -memory 2048 -cores 2
           script: |
             set -euo pipefail
             APK="$(find "$PROJECT_ROOT/app/build/outputs/apk/release" -maxdepth 1 -type f -name '*.apk' -print -quit)"
