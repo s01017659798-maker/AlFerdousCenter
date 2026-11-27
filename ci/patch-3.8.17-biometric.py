@@ -171,8 +171,8 @@ html = html.replace(
 )
 
 html = html.replace('content="3.8.16"', 'content="3.8.17"')
-gradle = re.sub(r"versionCode\\s+\\d+", "versionCode 398", gradle)
-gradle = re.sub(r"versionName\\s+['\"][^'\"]+['\"]", "versionName '3.8.17'", gradle)
+gradle = re.sub(r"versionCode\s+\d+", "versionCode 398", gradle)
+gradle = re.sub(r"versionName\s+['\"][^'\"]+['\"]", "versionName '3.8.17'", gradle)
 
 jp.write_text(java, encoding="utf-8")
 hp.write_text(html, encoding="utf-8")
@@ -181,7 +181,7 @@ gp.write_text(gradle, encoding="utf-8")
 readme = root / "README-AR.txt"
 if readme.exists():
     r = readme.read_text(encoding="utf-8").replace("3.8.16", "3.8.17")
-    r += "\\n\\nإضافة 3.8.17: فتح التطبيق بالبصمة أو قفل شاشة أندرويد بعد التفعيل من الإعدادات، مع بقاء كلمة مرور التطبيق بديلًا.\\n"
+    r += "\n\nإضافة 3.8.17: فتح التطبيق بالبصمة أو قفل شاشة أندرويد بعد التفعيل من الإعدادات، مع بقاء كلمة مرور التطبيق بديلًا.\n"
     readme.write_text(r, encoding="utf-8")
 
 for p in (root / "tests").glob("*.test.cjs"):
