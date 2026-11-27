@@ -161,6 +161,14 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           sed -n '1p' "$RUNNER_TEMP/apk-badging.txt"
+      - name: Upload signed APK immediately after verification
+        if: ${{ env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: santer-alfardous-3.8.12-release-verified
+          path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 7
       - name: Launch APK on Android emulator
         timeout-minutes: 8
         continue-on-error: true
