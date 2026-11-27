@@ -40,4 +40,21 @@ g = gradle.read_text(encoding="utf-8")
 g = re.sub(r"versionCode\s+\d+", "versionCode 390", g)
 g = re.sub(r"versionName\s+.*", "versionName '3.8.10'", g)
 gradle.write_text(g, encoding="utf-8")
+# Keep regression expectations aligned with the repaired app version and guard the startup order.
+for test_name in ("feature-regression.test.cjs", "security-hardening.test.cjs"):
+    test_path = root / "tests" / test_name
+    t = test_path.read_text(encoding="utf-8")
+    t = t.replace("3.8.9", "3.8.10").replace("versionCode 389", "versionCode 390").replace(r"3\\.8\\.9", r"3\\.8\\.10")
+    test_path.write_text(t, encoding="utf-8")
+
+feature_test = root / "tests/feature-regression.test.cjs"
+t = feature_test.read_text(encoding="utf-8")
+if "fresh install normalizes database before the first render" not in t:
+    t += """
+\ntest('fresh install normalizes database before the first render', () => {
+  assert.match(html, /normalizeLoadedDatabase\\(\\);\\s*tab\\('home'\\);\\s*render\\(\\);\\s*updateServerStatus\\(\\);\\s*initLock\\(\\);/);
+});
+"""
+    feature_test.write_text(t, encoding="utf-8")
+
 print("Applied 3.8.10 repair before first render")
