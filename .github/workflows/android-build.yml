@@ -75,7 +75,7 @@ jobs:
       - name: Apply 3.8.15 bank import and startup repairs
         run: python3 ci/patch-3.8.10.py
       - name: Apply native Android contact picker repair
-        run: python3 ci/patch-3.8.15-contact-picker.py
+        run: python3 ci/patch-3.8.14-contact-picker.py
       - name: Apply memo and exam file upload repair
         run: python3 ci/patch-3.8.15-file-import.py
       - name: Run source regression tests
