@@ -11,8 +11,9 @@ html = hp.read_text(encoding="utf-8")
 gradle = gp.read_text(encoding="utf-8")
 
 if "AndroidBiometricBridge" not in java:
+    java = java.replace("public class MainActivity extends Activity {", "public class MainActivity extends FragmentActivity {", 1)
     java = java.replace(
-        "import androidx.core.graphics.Insets;",
+        "import androidx.fragment.app.FragmentActivity;\nimport androidx.core.graphics.Insets;",
         "import androidx.biometric.BiometricManager;\nimport androidx.biometric.BiometricPrompt;\nimport androidx.core.content.ContextCompat;\nimport androidx.core.graphics.Insets;",
         1
     )
@@ -101,6 +102,14 @@ if "AndroidBiometricBridge" not in java:
         'web.removeJavascriptInterface("AndroidNotificationBridge");\n            web.removeJavascriptInterface("AndroidBiometricBridge");',
         1
     )
+
+if "exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'" not in gradle:
+    gradle += """
+configurations.configureEach {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+"""
 
 if "androidx.biometric:biometric" not in gradle:
     gradle = gradle.replace(
@@ -200,6 +209,7 @@ const html=fs.readFileSync(path.join(root,'app/src/main/assets/index.html'),'utf
 const gradle=fs.readFileSync(path.join(root,'app/build.gradle'),'utf8');
 
 test('Android biometric bridge supports fingerprint and device credential with native fallback',()=>{
+ assert.match(java,/class MainActivity extends FragmentActivity/);
  assert.match(java,/class AndroidBiometricBridge/);
  assert.match(java,/BIOMETRIC_WEAK/);
  assert.match(java,/DEVICE_CREDENTIAL/);
@@ -207,6 +217,8 @@ test('Android biometric bridge supports fingerprint and device credential with n
  assert.match(java,/putBoolean\(ENABLED, true\)/);
  assert.match(java,/removeJavascriptInterface\("AndroidBiometricBridge"\)/);
  assert.match(gradle,/androidx\.biometric:biometric:1\.1\.0/);
+ assert.match(gradle,/kotlin-stdlib-jdk7/);
+ assert.match(gradle,/kotlin-stdlib-jdk8/);
 });
 
 test('biometric unlock can be enabled, disabled, and automatically requested after local storage is ready',()=>{
