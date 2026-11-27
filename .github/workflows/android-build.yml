@@ -152,11 +152,19 @@ jobs:
           ALFARDOUS_KEY_ALIAS: alfardous-center
           ALFARDOUS_KEY_PASSWORD: ${{ secrets.ALFARDOUS_KEYSTORE_PASSWORD }}
         run: gradle --no-daemon -p "$PROJECT_ROOT" clean :app:assembleRelease
+      - name: Verify APK signature and app identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find "$PROJECT_ROOT/app/build/outputs/apk/release" -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          test -n "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -n 1
       - name: Upload signed release APK
         if: ${{ env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: santer-alfardous-3.8.9-release
+          name: santer-alfardous-3.8.10-release
           path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 7
