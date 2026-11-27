@@ -72,8 +72,8 @@ jobs:
           echo "PROJECT_ROOT=$ROOT" >> "$GITHUB_ENV"
           test -f "$ROOT/settings.gradle"
           test -f "$ROOT/app/build.gradle"
-      - name: Apply 3.8.10 initialization repair
-        run: python3 ci/patch-3.8.10.py
+      - name: Apply 3.8.12 bank import and startup repairs
+        run: python3 ci/patch-3.8.12.py
       - name: Run source regression tests
         run: |
           if [ -f "$PROJECT_ROOT/tests/feature-regression.test.cjs" ]; then
@@ -178,21 +178,21 @@ jobs:
             adb shell am start -n eg.alfardous.center.fresh/eg.alfardous.center.MainActivity
             sleep 12
             adb shell pidof eg.alfardous.center.fresh >/dev/null
-            adb shell screencap -p /sdcard/alfardous-3.8.10-screen.png
-            adb pull /sdcard/alfardous-3.8.10-screen.png ./alfardous-3.8.10-screen.png
+            adb shell screencap -p /sdcard/alfardous-3.8.12-screen.png
+            adb pull /sdcard/alfardous-3.8.12-screen.png ./alfardous-3.8.12-screen.png
       - name: Upload emulator launch screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: santer-alfardous-3.8.10-emulator-smoke
-          path: alfardous-3.8.10-screen.png
+          name: santer-alfardous-3.8.12-emulator-smoke
+          path: alfardous-3.8.12-screen.png
           if-no-files-found: warn
           retention-days: 7
       - name: Upload signed release APK
         if: ${{ always() && env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: santer-alfardous-3.8.10-release
+          name: santer-alfardous-3.8.12-release
           path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 7
@@ -203,7 +203,7 @@ jobs:
         if: ${{ env.RELEASE_KEY_BASE64 == '' || steps.signing.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: santer-alfardous-3.8.9-debug
+          name: santer-alfardous-3.8.12-debug
           path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
