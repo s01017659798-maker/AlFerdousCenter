@@ -64,7 +64,14 @@ jobs:
                 ROOT="${FOUND%/app/src/main/assets/index.html}"
                 break
               fi
-            done < <(find . -maxdepth 2 -type f -iname '*.zip' -print0)
+            SOURCE_ZIP="$(find . -maxdepth 2 -type f -iname '*3.8.9*مصدر*مصحح*.zip' -print -quit)"
+          if [ -z "$SOURCE_ZIP" ]; then SOURCE_ZIP="$(find . -maxdepth 2 -type f -iname '*.zip' -print -quit)"; fi
+          if [ -z "$SOURCE_ZIP" ]; then echo 'No Android project ZIP found'; exit 1; fi
+          DEST="/tmp/alfardous-unpack/$(basename "$SOURCE_ZIP" .zip)"
+          mkdir -p "$DEST"
+          unzip -oq "$SOURCE_ZIP" -d "$DEST"
+          FOUND="$(find "$DEST" -type f -path '*/app/src/main/assets/index.html' -print -quit)"
+          if [ -n "$FOUND" ]; then ROOT="${FOUND%/app/src/main/assets/index.html}"; fi
           fi
           if [ -z "$ROOT" ]; then
             echo 'Android project not found. Upload the project ZIP to the repository root.'
@@ -73,6 +80,8 @@ jobs:
           echo "PROJECT_ROOT=$ROOT" >> "$GITHUB_ENV"
           test -f "$ROOT/settings.gradle"
           test -f "$ROOT/app/build.gradle"
+      - name: Apply 3.8.10 initialization repair
+        run: python3 ci/patch-3.8.10.py
       - name: Run source regression tests
         run: |
           if [ -f "$PROJECT_ROOT/tests/feature-regression.test.cjs" ]; then
