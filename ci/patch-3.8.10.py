@@ -4,7 +4,7 @@ import re, os
 root=Path(os.environ["PROJECT_ROOT"])
 hp=root/"app/src/main/assets/index.html"
 s=hp.read_text(encoding="utf-8")
-s=s.replace('content="3.8.9"','content="3.8.12"').replace('content="3.8.10"','content="3.8.12"').replace('content="3.8.11"','content="3.8.12"')
+s=s.replace('content="3.8.9"','content="3.8.13"').replace('content="3.8.10"','content="3.8.12"').replace('content="3.8.11"','content="3.8.12"')
 m=re.search(r"function normalizeLoadedDatabase\(\)\{[^\r\n]*\}",s)
 if not m: raise SystemExit("Database normalizer not found")
 normalizer="""function normalizeLoadedDatabase(){
@@ -53,9 +53,14 @@ new_runner="const sourceMediaHtml=(ex.sourceMedia||[]).filter(m=>m&&m.type==='im
 if old_runner not in s:raise SystemExit("Exam runner render anchor missing")
 s=s.replace(old_runner,new_runner,1)
 if 'sourceMedia:ex.sourceMedia||[]' not in s:s=s.replace('questions:ex.questions}}','questions:ex.questions,sourceMedia:ex.sourceMedia||[]}}',1)
+# Clear imported source media and preview together with imported text.
+old_clear="function clearExamImport(){importedExamText='';$('examImportFile').value='';$('examImportText').value='';$('examImportPreview').classList.add('hidden');$('examImportStatus').textContent='';}"
+new_clear="function clearExamImport(){importedExamText='';importedExamMedia=[];importedQuestionsDraft=[];importedDraftSaved=false;$('examImportFile').value='';$('examImportText').value='';$('examImportPreview').classList.add('hidden');$('examImportMediaPreview').innerHTML='';$('importQuestionReview').classList.add('hidden');$('examImportStatus').textContent='';}"
+if old_clear not in s: raise SystemExit("Clear import function anchor missing")
+s=s.replace(old_clear,new_clear,1)
 hp.write_text(s,encoding="utf-8")
 gp=root/"app/build.gradle";g=gp.read_text(encoding="utf-8")
-g=re.sub(r"versionCode\s+\d+","versionCode 392",g);g=re.sub(r"versionName\s+.*","versionName '3.8.12'",g);gp.write_text(g,encoding="utf-8")
+g=re.sub(r"versionCode\s+\d+","versionCode 393",g);g=re.sub(r"versionName\s+.*","versionName '3.8.12'",g);gp.write_text(g,encoding="utf-8")
 for name in ("feature-regression.test.cjs","security-hardening.test.cjs"):
  p=root/"tests"/name;t=p.read_text(encoding="utf-8")
  t=t.replace("3.8.9","3.8.12").replace("3.8.10","3.8.12").replace("3.8.11","3.8.12")
@@ -83,4 +88,15 @@ test('question bank includes source-file import, preview, question review, and e
 });
 '''
  p.write_text(t,encoding="utf-8")
-print("Applied 3.8.12 source-file import integration")
+p=root/"tests/feature-regression.test.cjs";t=p.read_text(encoding="utf-8")
+if "clearing imported exam source removes all attached media" not in t:
+ t+='''
+
+test('clearing imported exam source removes all attached media and draft review', () => {
+ assert.match(html,/function clearExamImport\\(\\)\\{[^}]*importedExamMedia=\\[\\][^}]*importedQuestionsDraft=\\[\\][^}]*importedDraftSaved=false/);
+ assert.match(html,/function clearExamImport\\(\\)\\{[^}]*examImportMediaPreview[^}]*innerHTML=''/);
+ assert.match(html,/function clearExamImport\\(\\)\\{[^}]*importQuestionReview[^}]*classList\\.add\\('hidden'\\)/);
+});
+'''
+p.write_text(t,encoding="utf-8")
+print("Applied 3.8.13 import cleanup repair and regression test")
