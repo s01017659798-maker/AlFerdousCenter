@@ -28,7 +28,7 @@ if fp.exists():
 for p in tests.glob("*.test.cjs"):
     source = p.read_text(encoding="utf-8")
     source, count = re.subn(
-        r"test\\('question bank includes source-file import.*?\\n\\}\\);",
+        r"test\('question bank includes source-file import.*?\n\}\);",
         """test('exam section includes source-file import, preview, review, and conversion workflow', () => {
   const a=html.indexOf('<section id="exams"'), b=html.indexOf('<section id="questionBank"'), exams=html.slice(a,b);
   assert.ok(a >= 0 && b > a, 'exams section must precede question bank');
