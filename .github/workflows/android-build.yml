@@ -77,7 +77,7 @@ jobs:
       - name: Apply native Android contact picker repair
         run: python3 ci/patch-3.8.14-contact-picker.py
       - name: Apply memo and exam file upload repair
-        run: python3 ci/patch-3.8.17-file-import.py
+        run: python3 ci/patch-3.8.15-file-import.py
       - name: Allow three-part student names and finalize release metadata
         run: python3 ci/patch-3.8.16-three-name.py
       - name: Add native biometric and device-lock unlock
