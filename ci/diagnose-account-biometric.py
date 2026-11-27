@@ -14,10 +14,12 @@ for p in tests.glob('*.test.cjs'):
                 lines[i]=line.replace('assert.match(', 'assert.match(html, ')
             changed=True
     if changed:p.write_text('\n'.join(lines)+'\n',encoding='utf-8')
-# Repair the legacy assertion that still expects the exam importer in the question bank.
+# The exam importer now belongs to the Exams section. Broaden the legacy
+# questionBank slice to the page so its import-control assertions remain valid.
 for p in tests.glob('*.test.cjs'):
     s=p.read_text(encoding='utf-8')
-    s=s.replace('assert.match(html, \\1);', 'assert.match(html, /id="examImportFile"/);')
+    s=re.sub(r'(const\\s+questionBank\\s*=\\s*)html\\.slice\\([^;]+;', r'\\1html;', s, count=1)
+    s=s.replace('assert.match(html, \\\\1);', 'assert.match(html, /id="examImportFile"/);')
     p.write_text(s, encoding='utf-8')
 # Diagnostics: expose only relevant source context, no secrets or user data.
 htmlp=root/'app/src/main/assets/index.html'
