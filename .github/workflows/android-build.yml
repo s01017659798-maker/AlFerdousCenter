@@ -193,7 +193,7 @@ jobs:
             sleep 12
             adb shell pidof eg.alfardous.center.fresh >/dev/null
             adb shell screencap -p /sdcard/alfardous-3.8.18-screen.png
-            adb pull /sdcard/alfardous-3.8.18-screen.png ./alfardous-3.8.14-screen.png
+            adb pull /sdcard/alfardous-3.8.18-screen.png ./alfardous-3.8.18-screen.png
       - name: Upload final signed APK only after emulator smoke test
         if: ${{ success() && env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         uses: actions/upload-artifact@v4
@@ -227,7 +227,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: santer-alfardous-3.8.18-emulator-smoke
-          path: alfardous-3.8.14-screen.png
+          path: alfardous-3.8.18-screen.png
           if-no-files-found: warn
           retention-days: 7
       - name: Build debug APK (verification only)
