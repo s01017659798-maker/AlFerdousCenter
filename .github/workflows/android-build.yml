@@ -178,7 +178,7 @@ jobs:
       - name: Launch APK on Android emulator
         timeout-minutes: 18
         env:
-          ANDROID_I_WANT_MY_TCG: yes
+          ANDROID_I_WANT_MY_TCG: "yes"
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
