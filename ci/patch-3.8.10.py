@@ -17,7 +17,7 @@ new="""function normalizeLoadedDatabase(){
  db.examAttempts ||= [];db.teachers ||= [];db.expenses ||= [];db.auditLog ||= [];
  db.lessonAssessments ||= [];db.lessonReminders ||= [];db.centerReminders ||= [];
  db.homework ||= [];db.homeworkSubmissions ||= [];db.questions ||= [];db.interactionRecords ||= [];
- db.accounts ||= {};db.settings ||= {};
+ db.accounts ||= [];db.settings ||= {};
  db.groups.forEach(g=>{if(!g.subjectId)g.subjectId='social-studies';if(g.active===undefined)g.active=true;if(!g.teacher)g.teacher=''});
  db.students.forEach(st=>{if(!st.subjectId){let g=db.groups.find(x=>x.id==st.groupId);st.subjectId=g?.subjectId||'social-studies'}if(!st.studentCode)st.studentCode=nextStudentCode()});
 }"""
