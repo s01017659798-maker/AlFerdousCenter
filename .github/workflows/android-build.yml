@@ -72,12 +72,14 @@ jobs:
           echo "PROJECT_ROOT=$ROOT" >> "$GITHUB_ENV"
           test -f "$ROOT/settings.gradle"
           test -f "$ROOT/app/build.gradle"
-      - name: Apply 3.8.15 bank import and startup repairs
+      - name: Apply question bank import and startup repairs
         run: python3 ci/patch-3.8.10.py
       - name: Apply native Android contact picker repair
         run: python3 ci/patch-3.8.14-contact-picker.py
       - name: Apply memo and exam file upload repair
         run: python3 ci/patch-3.8.15-file-import.py
+      - name: Allow three-part student names and finalize release metadata
+        run: python3 ci/patch-3.8.16-three-name.py
       - name: Diagnose account creation and biometric lock anchors
         run: python3 ci/diagnose-account-biometric.py
       - name: Run source regression tests
@@ -188,7 +190,7 @@ jobs:
             adb shell pidof eg.alfardous.center.fresh >/dev/null
             adb shell screencap -p /sdcard/alfardous-3.8.15-screen.png
             adb pull /sdcard/alfardous-3.8.14-screen.png ./alfardous-3.8.14-screen.png
-      - name: Upload signed release APK only after emulator smoke test
+      - name: Upload final signed APK only after emulator smoke test
         if: ${{ success() && env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
