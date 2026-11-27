@@ -82,6 +82,8 @@ jobs:
         run: python3 ci/patch-3.8.16-three-name.py
       - name: Add native biometric and device-lock unlock
         run: python3 ci/patch-3.8.17-biometric.py
+      - name: Add question-bank entry to the shared file importer
+        run: python3 ci/patch-3.8.18-question-bank-import-entry.py
       - name: Diagnose account creation and biometric lock anchors
         run: python3 ci/diagnose-account-biometric.py
       - name: Run source regression tests
