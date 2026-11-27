@@ -159,7 +159,8 @@ jobs:
           APK="$(find "$PROJECT_ROOT/app/build/outputs/apk/release" -maxdepth 1 -type f -name '*.apk' -print -quit)"
           test -n "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -n 1
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
+          sed -n '1p' "$RUNNER_TEMP/apk-badging.txt"
       - name: Upload signed release APK
         if: ${{ env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
         uses: actions/upload-artifact@v4
