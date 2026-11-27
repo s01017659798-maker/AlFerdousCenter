@@ -47,6 +47,12 @@ old="questions,imported:true,createdAt:new Date().toISOString()};"
 new="questions,imported:true,sourceMedia:importedExamMedia.slice(),sourceFileName:$('examImportFile')?.files?.[0]?.name||'',createdAt:new Date().toISOString()};"
 if old not in s:raise SystemExit("Imported exam data model missing")
 s=s.replace(old,new,1)
+# Show source maps/images to students and preserve them in exported exam packages.
+old_runner="$('runnerQuestions').innerHTML=order.map((q,i)=>"
+new_runner="const sourceMediaHtml=(ex.sourceMedia||[]).filter(m=>m&&m.type==='image'&&m.data).map(m=>'<figure class=\\\"panel\\\" style=\\\"margin:8px 0;text-align:center\\\"><img src=\\\"'+m.data+'\\\" alt=\\\"'+esc(m.name||'مرفق الامتحان')+'\\\" style=\\\"max-width:100%;max-height:300px;object-fit:contain\\\"><figcaption>'+esc(m.name||'مرفق الامتحان')+'</figcaption></figure>').join('');$('runnerQuestions').innerHTML=(sourceMediaHtml?'<div class=\\\"panel\\\"><h3>صور وخرائط مرفقة بالامتحان</h3>'+sourceMediaHtml+'</div>':'')+order.map((q,i)=>"
+if old_runner not in s:raise SystemExit("Exam runner render anchor missing")
+s=s.replace(old_runner,new_runner,1)
+if 'sourceMedia:ex.sourceMedia||[]' not in s:s=s.replace('questions:ex.questions}}','questions:ex.questions,sourceMedia:ex.sourceMedia||[]}}',1)
 hp.write_text(s,encoding="utf-8")
 gp=root/"app/build.gradle";g=gp.read_text(encoding="utf-8")
 g=re.sub(r"versionCode\s+\d+","versionCode 392",g);g=re.sub(r"versionName\s+.*","versionName '3.8.12'",g);gp.write_text(g,encoding="utf-8")
@@ -72,6 +78,8 @@ test('question bank includes source-file import, preview, question review, and e
  assert.match(html,/function saveImportedExamAsElectronic\\(\\)/);
  assert.match(html,/sourceMedia:importedExamMedia\\.slice\\(\\)/);
  assert.match(html,/كل سؤال يحتاج إجابة صحيحة محددة يدويًا/);
+ assert.match(html,/const sourceMediaHtml=\\(ex\\.sourceMedia\\|\\|\\[\\]\\)/);
+ assert.match(html,/sourceMedia:ex\\.sourceMedia\\|\\|\\[\\]/);
 });
 '''
  p.write_text(t,encoding="utf-8")
