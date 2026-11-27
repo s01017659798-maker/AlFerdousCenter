@@ -73,7 +73,7 @@ jobs:
           test -f "$ROOT/settings.gradle"
           test -f "$ROOT/app/build.gradle"
       - name: Apply 3.8.12 bank import and startup repairs
-        run: python3 ci/patch-3.8.12.py
+        run: python3 ci/patch-3.8.10.py
       - name: Run source regression tests
         run: |
           if [ -f "$PROJECT_ROOT/tests/feature-regression.test.cjs" ]; then
