@@ -93,8 +93,8 @@ java_path.write_text(java, encoding="utf-8")
 
 gradle_path = root / "app/build.gradle"
 gradle = gradle_path.read_text(encoding="utf-8")
-gradle = re.sub(r"versionCode\\s+\\d+", "versionCode 395", gradle)
-gradle = re.sub(r"versionName\\s+['\"][^'\"]+['\"]", "versionName '3.8.14'", gradle)
+gradle = re.sub(r"versionCode\s+\d+", "versionCode 395", gradle)
+gradle = re.sub(r"versionName\s+['\"][^'\"]+['\"]", "versionName '3.8.14'", gradle)
 gradle_path.write_text(gradle, encoding="utf-8")
 
 for test_path in (root / "tests").glob("*.test.cjs"):
