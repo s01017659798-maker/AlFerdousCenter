@@ -38,6 +38,6 @@ html_path.write_text(s, encoding="utf-8")
 gradle = root / "app/build.gradle"
 g = gradle.read_text(encoding="utf-8")
 g = re.sub(r"versionCode\s+\d+", "versionCode 390", g)
-g = re.sub(r"versionName\s+['"][^'"]+['"]", "versionName '3.8.10'", g)
+g = re.sub(r"versionName\s+.*", "versionName '3.8.10'", g)
 gradle.write_text(g, encoding="utf-8")
 print("Applied 3.8.10 repair before first render")
