@@ -10,6 +10,7 @@ on:
       - '*.gradle'
       - 'gradle.properties'
       - 'tests/**'
+      - 'ci/**'
       - '.github/workflows/android-build.yml'
 permissions:
   contents: read
