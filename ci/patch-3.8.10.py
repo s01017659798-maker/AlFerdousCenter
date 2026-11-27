@@ -7,8 +7,8 @@ html_path = root / "app/src/main/assets/index.html"
 s = html_path.read_text(encoding="utf-8")
 s = s.replace('<meta name="app-version" content="3.8.9">', '<meta name="app-version" content="3.8.10">')
 
-# The baseline function is deliberately one physical line; match only that line.
-pattern = r"function normalizeLoadedDatabase\\(\\)\\{[^\\r\\n]*\\}"
+# Match only the original one-line function, never adjacent application code.
+pattern = r"function normalizeLoadedDatabase\(\)\{[^\r\n]*\}"
 old = re.search(pattern, s)
 if not old:
     raise SystemExit("Could not locate the one-line database normalizer; refusing unsafe patch")
@@ -27,19 +27,17 @@ new = """function normalizeLoadedDatabase(){
 }"""
 s = s[:old.start()] + new + s[old.end():]
 
-# Run normalization before the FIRST initial screen render, not at the end of the file.
-anchor = "tab('home');\\nrender();\\nupdateServerStatus();\\ninitLock();"
+# Place the normalizer before the first startup render.
+anchor = "tab('home');\nrender();\nupdateServerStatus();\ninitLock();"
 if anchor not in s:
     raise SystemExit("Initial startup render block not found; refusing unsafe patch")
-if "normalizeLoadedDatabase();\\n" + anchor not in s:
-    s = s.replace(anchor, "normalizeLoadedDatabase();\\n" + anchor, 1)
-if s.index("normalizeLoadedDatabase();\\n" + anchor) > s.index(anchor):
-    raise SystemExit("Database normalization was not placed before first render")
+if "normalizeLoadedDatabase();\n" + anchor not in s:
+    s = s.replace(anchor, "normalizeLoadedDatabase();\n" + anchor, 1)
 html_path.write_text(s, encoding="utf-8")
 
 gradle = root / "app/build.gradle"
 g = gradle.read_text(encoding="utf-8")
-g = re.sub(r"versionCode\\s+\\d+", "versionCode 390", g)
-g = re.sub(r"versionName\\s+['\\\"][^'\\\"]+['\\\"]", "versionName '3.8.10'", g)
+g = re.sub(r"versionCode\s+\d+", "versionCode 390", g)
+g = re.sub(r"versionName\s+['"][^'"]+['"]", "versionName '3.8.10'", g)
 gradle.write_text(g, encoding="utf-8")
-print("Applied 3.8.10 repair: database collections initialized before first render")
+print("Applied 3.8.10 repair before first render")
