@@ -186,7 +186,7 @@ if readme.exists():
 
 for p in (root / "tests").glob("*.test.cjs"):
     t = p.read_text(encoding="utf-8")
-    t = t.replace("3.8.16", "3.8.17").replace(r"3\.8\.16", r"3\.8\.17")
+    t = t.replace("3.8.16", "3.8.17").replace(r"3\\.8\\.16", r"3\\.8\\.17")
     t = t.replace("versionCode 397", "versionCode 398")
     p.write_text(t, encoding="utf-8")
 
