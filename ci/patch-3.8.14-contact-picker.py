@@ -86,6 +86,17 @@ html, count = pattern.subn(replacement, html, count=1)
 if count != 1:
     raise SystemExit("Could not replace pickPhoneContact()")
 
+# Add the same native contact picker to the teacher phone field.
+teacher_form = '<div><label>الأجر الشهري الثابت (جنيه)</label><input id="teacherSalary" type="number" min="0" required placeholder="مثال: 3000"></div>'
+teacher_form_new = teacher_form + '<div><label>رقم هاتف المدرس</label><div class="row"><input id="teacherPhone" inputmode="tel" placeholder="01xxxxxxxxx"><button type="button" class="btn light" onclick="pickPhoneContact(\'teacherPhone\')">اختيار من جهات الاتصال</button></div></div>'
+if 'id="teacherPhone"' not in html:
+    html = once(teacher_form, teacher_form_new, "teacher phone field", html)
+html = html.replace("const name=$('teacherName').value.trim(), salary=Number($('teacherSalary').value);", "const name=$('teacherName').value.trim(), salary=Number($('teacherSalary').value), phone=$('teacherPhone')?.value.trim()||'';", 1)
+html = html.replace("name,salary,active:true,createdAt:today,statusHistory", "name,salary,phone,active:true,createdAt:today,statusHistory", 1)
+html = html.replace("const oldName=t.name,oldSalary=t.salary;", "const phoneText=prompt('رقم هاتف المدرس:',t.phone||'');if(phoneText===null)return;const oldName=t.name,oldSalary=t.salary,oldPhone=t.phone;t.phone=phoneText.trim();", 1)
+html = html.replace("if(!save()){t.name=oldName;t.salary=oldSalary;return;}", "if(!save()){t.name=oldName;t.salary=oldSalary;t.phone=oldPhone;return;}", 1)
+html = html.replace("${esc(t.name)}</td><td>${Number(t.salary||0).toLocaleString('ar-EG')} ج", "${esc(t.name)}<br><small dir=\"ltr\">${esc(t.phone||'—')}</small></td><td>${Number(t.salary||0).toLocaleString('ar-EG')} ج")
+
 # Bump beyond the already-created 3.8.13 package.
 html = html.replace("3.8.13", "3.8.14")
 html_path.write_text(html, encoding="utf-8")
