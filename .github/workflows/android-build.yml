@@ -81,11 +81,12 @@ jobs:
       - name: Diagnose account creation and biometric lock anchors
         run: python3 ci/diagnose-account-biometric.py
       - name: Run source regression tests
+        shell: bash
         run: |
-          if [ -f "$PROJECT_ROOT/tests/feature-regression.test.cjs" ]; then
-            cd "$PROJECT_ROOT"
-            node --test tests/*.test.cjs
-          fi
+          set -euo pipefail
+          test -f "$PROJECT_ROOT/tests/feature-regression.test.cjs" || { echo 'Required source regression tests are missing'; exit 1; }
+          cd "$PROJECT_ROOT"
+          node --test tests/*.test.cjs
       - name: Check inline JavaScript syntax
         shell: bash
         run: |
@@ -167,14 +168,6 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           sed -n '1p' "$RUNNER_TEMP/apk-badging.txt"
-      - name: Upload signed APK immediately after verification
-        if: ${{ env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: santer-alfardous-3.8.14-release-verified
-          path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
-          retention-days: 7
       - name: Launch APK on Android emulator
         timeout-minutes: 12
         uses: reactivecircus/android-emulator-runner@v2
@@ -193,11 +186,19 @@ jobs:
             adb shell pidof eg.alfardous.center.fresh >/dev/null
             adb shell screencap -p /sdcard/alfardous-3.8.14-screen.png
             adb pull /sdcard/alfardous-3.8.14-screen.png ./alfardous-3.8.14-screen.png
+      - name: Upload signed release APK only after emulator smoke test
+        if: ${{ success() && env.RELEASE_KEY_BASE64 != '' && steps.signing.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: santer-alfardous-3.8.15-release
+          path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload emulator launch screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: santer-alfardous-3.8.14-emulator-smoke
+          name: santer-alfardous-3.8.15-emulator-smoke
           path: alfardous-3.8.14-screen.png
           if-no-files-found: warn
           retention-days: 7
