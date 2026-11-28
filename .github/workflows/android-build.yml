@@ -191,7 +191,9 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -memory 2048 -cores 2
           script: |
             set -euo pipefail
-            APK="$(find "$PROJECT_ROOT/app/build/outputs/apk/release" -maxdepth 1 -type f -name '*.apk' -print -quit)"
+            APK="$(find "$GITHUB_WORKSPACE" -type f -path '*/app/build/outputs/apk/release/*.apk' -print -quit)"
+            test -n "$APK" || { echo "Release APK not found under workspace: $GITHUB_WORKSPACE"; find "$GITHUB_WORKSPACE" -type f -name '*.apk' -print; exit 1; }
+            echo "Installing verified release APK: $APK"
             adb install -r "$APK"
             adb shell am start -n eg.alfardous.center.fresh/eg.alfardous.center.MainActivity
             sleep 12
@@ -203,7 +205,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: santer-alfardous-3.8.18-release
-          path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/release/*.apk
+          path: ${{ github.workspace }}/**/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 7
       - name: Package final Android project source and HTML
